@@ -1,0 +1,31 @@
+name: Build Sukuna Client JAR
+
+on:
+  push:
+    branches: [sukuna-client-initial]
+    paths:
+      - 'sukuna-client/**'
+      - '.github/workflows/sukuna-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sukuna-client-initial
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build mod JAR
+        working-directory: sukuna-client
+        run: gradle build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sukuna-Client-1.21.11
+          path: sukuna-client/build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 30
