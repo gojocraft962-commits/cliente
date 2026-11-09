@@ -23,6 +23,7 @@ public final class SukunaClient implements ClientModInitializer {
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            CombatModuleController.tick(client);
             while (openMenuKey.consumeClick()) {
                 if (client.screen instanceof ClickGuiScreen) {
                     client.setScreen(null);
