@@ -79,11 +79,19 @@ public final class ModuleRegistry {
 
     private static void add(String name, ClientModule.Category category) {
         ClientModule module = new ClientModule(name, category, "Módulo em desenvolvimento.");
-        module.addSetting(ModuleSetting.toggle("Enabled", false));
-        module.addSetting(ModuleSetting.slider("Range", 4.0, 1.0, 6.0, 0.5));
-        module.addSetting(ModuleSetting.slider("Delay", 100.0, 0.0, 500.0, 25.0));
-        module.addSetting(ModuleSetting.mode("Mode", "Normal", "Legit", "Strict"));
-        module.addSetting(ModuleSetting.toggle("Show notifications", true));
+        if (name.equals("Aura") || name.equals("AuraV2")) {
+            module.addSetting(ModuleSetting.toggle("Target Players", true));
+            module.addSetting(ModuleSetting.toggle("Target Mobs", false));
+            module.addSetting(ModuleSetting.slider("Range", 4.0, 2.0, 6.0, 0.5));
+            module.addSetting(ModuleSetting.slider("CPS", 8.0, 1.0, 20.0, 1.0));
+            module.addSetting(ModuleSetting.mode("Priority", "Closest", "Lowest health"));
+        } else if (name.equals("AutoClicker")) {
+            module.addSetting(ModuleSetting.slider("CPS", 10.0, 1.0, 20.0, 1.0));
+            module.addSetting(ModuleSetting.mode("Button", "Left", "Right"));
+        } else {
+            module.addSetting(ModuleSetting.toggle("Enabled", false));
+            module.addSetting(ModuleSetting.mode("Mode", "Normal", "Legit", "Strict"));
+        }
         MODULES.add(module);
     }
 
