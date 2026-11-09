@@ -4,137 +4,123 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-
 import java.util.List;
 
 public final class ClickGuiScreen extends Screen {
     private static final ClientModule.Category[] CATEGORIES = ClientModule.Category.values();
-    private static final int[] ACCENTS = {0xFFB20D2D, 0xFF7A35D1, 0xFF167AC6, 0xFF168A62, 0xFFE07820};
-    private ClientModule.Category selected = ClientModule.Category.COMBAT;
-    private int scroll;
-    private boolean settingsOpen;
-    private int accentIndex;
-    private int panelOpacity = 96;
-    private int backdropOpacity = 153;
-    private int uiScale = 100;
+    private static final int[] ACCENTS = {0xFFB20D2D,0xFF7A35D1,0xFF167AC6,0xFF168A62,0xFFE07820};
+    private ClientModule.Category selected=ClientModule.Category.COMBAT;
+    private ClientModule selectedModule;
+    private int scroll, settingScroll, accentIndex, panelOpacity=96, backdropOpacity=153, uiScale=100;
+    private boolean settingsOpen, moduleSettingsOpen;
+    public ClickGuiScreen(){super(Component.literal("Sukuna Client"));}
 
-    public ClickGuiScreen() { super(Component.literal("Sukuna Client")); }
+    @Override public void render(GuiGraphics g,int mouseX,int mouseY,float partialTick){
+        float scale=uiScale/100.0f;
+        int mx=(int)((mouseX-width/2.0f)/scale+width/2.0f), my=(int)((mouseY-height/2.0f)/scale+height/2.0f);
+        g.pose().pushMatrix(); g.pose().translate(width/2.0f,height/2.0f); g.pose().scale(scale,scale); g.pose().translate(-width/2.0f,-height/2.0f);
+        int l=width/2-220,t=height/2-160,r=l+440,b=t+320;
+        g.fill(0,0,width,height,(backdropOpacity<<24)|0x00060008);
+        g.fill(l,t,r,b,(panelOpacity<<24)|0x0017121D); g.fill(l,t,r,t+3,ACCENTS[accentIndex]);
+        g.drawString(font,"SUKUNA CLIENT",l+16,t+13,ACCENTS[accentIndex]);
+        g.drawString(font,"Minecraft 1.21.11  •  Right Shift para fechar",l+16,t+29,0xFFB8AEBB);
+        g.fill(r-30,t+10,r-12,t+28,settingsOpen?ACCENTS[accentIndex]:0xFF302633);
+        g.drawCenteredString(font,"⚙",r-21,t+15,0xFFFFFFFF);
 
-    @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        float scale = uiScale / 100.0f;
-        int mouseXScaled = (int) ((mouseX - width / 2.0f) / scale + width / 2.0f);
-        int mouseYScaled = (int) ((mouseY - height / 2.0f) / scale + height / 2.0f);
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(width / 2.0f, height / 2.0f);
-        graphics.pose().scale(scale, scale);
-        graphics.pose().translate(-width / 2.0f, -height / 2.0f);
-        int left = width / 2 - 220, top = height / 2 - 160, right = left + 440, bottom = top + 320;
-        graphics.fill(0, 0, width, height, (backdropOpacity << 24) | 0x00060008);
-        graphics.fill(left, top, right, bottom, (panelOpacity << 24) | 0x0017121D);
-        graphics.fill(left, top, right, top + 3, ACCENTS[accentIndex]);
-        graphics.drawString(font, Component.literal("SUKUNA CLIENT"), left + 16, top + 13, ACCENTS[accentIndex]);
-        graphics.drawString(font, Component.literal("Minecraft 1.21.11  •  Right Shift para fechar"), left + 16, top + 29, 0xFFB8AEBB);
-        graphics.fill(right - 30, top + 10, right - 12, top + 28, settingsOpen ? ACCENTS[accentIndex] : 0xFF302633);
-        graphics.drawCenteredString(font, "⚙", right - 21, top + 15, 0xFFFFFFFF);
-
-        if (settingsOpen) {
-            graphics.drawString(font, Component.literal("DEFINIÇÕES DO MENU"), left + 18, top + 60, ACCENTS[accentIndex]);
-            settingRow(graphics, left, top + 91, "Cor de destaque", colorName(), mouseXScaled, mouseYScaled);
-            settingRow(graphics, left, top + 125, "Opacidade do painel", panelOpacity + "%", mouseXScaled, mouseYScaled);
-            settingRow(graphics, left, top + 159, "Escurecimento do fundo", backdropOpacity + "%", mouseXScaled, mouseYScaled);
-            settingRow(graphics, left, top + 193, "Escala da interface", uiScale + "%", mouseXScaled, mouseYScaled);
-            graphics.drawString(font, Component.literal("Clica numa opção para alterar. ESC volta ao menu."), left + 16, bottom - 22, 0xFFB8AEBB);
-            super.render(graphics, mouseX, mouseY, partialTick);
-            return;
+        if(settingsOpen){
+            g.drawString(font,"DEFINIÇÕES DO MENU",l+18,t+60,ACCENTS[accentIndex]);
+            row(g,l,t+91,"Cor de destaque",colorName(),mx,my);
+            row(g,l,t+125,"Opacidade do painel",panelOpacity+"%",mx,my);
+            row(g,l,t+159,"Escurecimento do fundo",backdropOpacity+"%",mx,my);
+            row(g,l,t+193,"Escala da interface",uiScale+"%",mx,my);
+            g.drawString(font,"Clica numa opção para alterar. Clica na engrenagem para voltar.",l+16,b-22,0xFFB8AEBB);
+            g.pose().popMatrix(); super.render(g,mouseX,mouseY,partialTick); return;
         }
-
-        int tabY = top + 52, tabX = left + 12;
-        for (ClientModule.Category category : CATEGORIES) {
-            String label = title(category);
-            int tabWidth = Math.max(54, font.width(label) + 14);
-            graphics.fill(tabX, tabY, tabX + tabWidth, tabY + 20, category == selected ? ACCENTS[accentIndex] : 0xFF302633);
-            graphics.drawCenteredString(font, label, tabX + tabWidth / 2, tabY + 6, 0xFFFFFFFF);
-            tabX += tabWidth + 5;
+        if(moduleSettingsOpen && selectedModule!=null){
+            g.drawString(font,selectedModule.name()+" — DEFINIÇÕES",l+18,t+60,ACCENTS[accentIndex]);
+            List<ModuleSetting> opts=selectedModule.settings();
+            int start=t+88;
+            for(int i=settingScroll;i<Math.min(opts.size(),settingScroll+8);i++){
+                ModuleSetting s=opts.get(i); row(g,l,start+(i-settingScroll)*25,s.name(),s.displayValue(),mx,my);
+            }
+            g.drawString(font,"Clica numa opção para alterar. ESC volta.",l+16,b-22,0xFFB8AEBB);
+            g.pose().popMatrix(); super.render(g,mouseX,mouseY,partialTick); return;
         }
-
-        graphics.drawString(font, Component.literal("MÓDULO"), left + 18, top + 83, 0xFFFF7890);
-        graphics.drawString(font, Component.literal("ESTADO"), right - 78, top + 83, 0xFFFF7890);
-        graphics.fill(left + 12, top + 98, right - 12, top + 99, 0xFF493440);
-        List<ClientModule> modules = ModuleRegistry.byCategory(selected);
-        int rowY = top + 106, visible = Math.min(9, Math.max(0, modules.size() - scroll));
-        for (int i = 0; i < visible; i++) {
-            ClientModule module = modules.get(i + scroll);
-            int y = rowY + i * 21;
-            if (mouseXScaled >= left + 12 && mouseXScaled <= right - 12 && mouseYScaled >= y - 3 && mouseYScaled < y + 17)
-                graphics.fill(left + 12, y - 3, right - 12, y + 17, 0xFF332431);
-            graphics.drawString(font, Component.literal(module.name()), left + 20, y + 2, 0xFFEDE7EF);
-            graphics.drawString(font, Component.literal(module.enabled() ? "ON" : "OFF"), right - 58, y + 2,
-                    module.enabled() ? 0xFF62E6A0 : 0xFFB5AAB5);
+        int tx=l+12,ty=t+52;
+        for(ClientModule.Category c:CATEGORIES){
+            String label=title(c); int w=Math.max(54,font.width(label)+14);
+            g.fill(tx,ty,tx+w,ty+20,c==selected?ACCENTS[accentIndex]:0xFF302633);
+            g.drawCenteredString(font,label,tx+w/2,ty+6,0xFFFFFFFF); tx+=w+5;
         }
-        graphics.drawString(font, Component.literal("Clique num módulo para alternar. ESC ou Right Shift fecha o menu."),
-                left + 16, bottom - 22, 0xFFB8AEBB);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        g.drawString(font,"MÓDULO",l+18,t+83,0xFFFF7890); g.drawString(font,"ESTADO",r-78,t+83,0xFFFF7890);
+        g.fill(l+12,t+98,r-12,t+99,0xFF493440);
+        List<ClientModule> modules=ModuleRegistry.byCategory(selected);
+        int rowY=t+106, visible=Math.min(9,Math.max(0,modules.size()-scroll));
+        for(int i=0;i<visible;i++){
+            ClientModule m=modules.get(i+scroll); int y=rowY+i*21;
+            if(mx>=l+12&&mx<=r-12&&my>=y-3&&my<y+17)g.fill(l+12,y-3,r-12,y+17,0xFF332431);
+            g.drawString(font,m.name(),l+20,y+2,0xFFEDE7EF);
+            g.drawString(font,m.enabled()?"ON":"OFF",r-58,y+2,m.enabled()?0xFF62E6A0:0xFFB5AAB5);
+        }
+        g.drawString(font,"Clique: ativar/desativar • Botão direito: definições • ESC fecha",l+16,b-22,0xFFB8AEBB);
+        g.pose().popMatrix(); super.render(g,mouseX,mouseY,partialTick);
     }
-
-    private void settingRow(GuiGraphics g, int left, int y, String label, String value, int mx, int my) {
-        boolean hover = mx >= left + 12 && mx <= left + 428 && my >= y - 5 && my < y + 24;
-        g.fill(left + 12, y - 5, left + 428, y + 24, hover ? 0xFF392A3A : 0xFF29212E);
-        g.drawString(font, Component.literal(label), left + 22, y + 4, 0xFFEDE7EF);
-        g.drawString(font, Component.literal(value), left + 330, y + 4, ACCENTS[accentIndex]);
+    private void row(GuiGraphics g,int l,int y,String label,String value,int mx,int my){
+        boolean hover=mx>=l+12&&mx<=l+428&&my>=y-5&&my<y+24;
+        g.fill(l+12,y-5,l+428,y+24,hover?0xFF392A3A:0xFF29212E);
+        g.drawString(font,label,l+22,y+4,0xFFEDE7EF);
+        g.drawString(font,value,l+330,y+4,ACCENTS[accentIndex]);
     }
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mx = event.x(), my = event.y();
-        if (event.button() != 0) return super.mouseClicked(event, doubleClick);
-        int left = width / 2 - 220, top = height / 2 - 160, right = left + 440;
-        if (mx >= right - 30 && mx <= right - 12 && my >= top + 10 && my <= top + 28) {
-            settingsOpen = !settingsOpen;
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean doubleClick){
+        double mx=e.x(),my=e.y(); int l=width/2-220,t=height/2-160,r=l+440;
+        if(e.button()==0&&mx>=r-30&&mx<=r-12&&my>=t+10&&my<=t+28){
+            settingsOpen=!settingsOpen; moduleSettingsOpen=false; return true;
+        }
+        if(e.button()==0&&settingsOpen&&mx>=l+12&&mx<=l+428){
+            if(my>=t+86&&my<t+120)accentIndex=(accentIndex+1)%ACCENTS.length;
+            else if(my>=t+120&&my<t+154)panelOpacity=panelOpacity>=224?64:panelOpacity+16;
+            else if(my>=t+154&&my<t+188)backdropOpacity=backdropOpacity>=224?64:backdropOpacity+16;
+            else if(my>=t+188&&my<t+222)uiScale=uiScale>=150?75:uiScale+5;
             return true;
         }
-        if (settingsOpen) {
-            if (mx >= left + 12 && mx <= left + 428) {
-                if (my >= top + 86 && my < top + 120) accentIndex = (accentIndex + 1) % ACCENTS.length;
-                else if (my >= top + 120 && my < top + 154) panelOpacity = panelOpacity >= 224 ? 64 : panelOpacity + 32;
-                else if (my >= top + 154 && my < top + 188) backdropOpacity = backdropOpacity >= 224 ? 64 : backdropOpacity + 32;
-                else if (my >= top + 188 && my < top + 222) uiScale = uiScale >= 125 ? 75 : uiScale + 25;
+        if(moduleSettingsOpen&&selectedModule!=null){
+            if(e.button()==0&&mx>=l+12&&mx<=l+428){
+                int index=settingScroll+(int)((my-(t+83))/25);
+                if(index>=0&&index<selectedModule.settings().size())selectedModule.settings().get(index).cycle();
+                return true;
             }
-            return true;
+            return super.mouseClicked(e,doubleClick);
         }
-        int tabY = top + 52, tabX = left + 12;
-        for (ClientModule.Category category : CATEGORIES) {
-            int tabWidth = Math.max(54, font.width(title(category)) + 14);
-            if (mx >= tabX && mx <= tabX + tabWidth && my >= tabY && my <= tabY + 20) {
-                selected = category; scroll = 0; return true;
-            }
-            tabX += tabWidth + 5;
+        if(settingsOpen)return super.mouseClicked(e,doubleClick);
+        int tx=l+12,ty=t+52;
+        if(e.button()==0)for(ClientModule.Category c:CATEGORIES){
+            int w=Math.max(54,font.width(title(c))+14);
+            if(mx>=tx&&mx<=tx+w&&my>=ty&&my<=ty+20){selected=c;scroll=0;return true;} tx+=w+5;
         }
-        List<ClientModule> modules = ModuleRegistry.byCategory(selected);
-        int rowY = top + 106;
-        for (int i = 0; i < 9 && i + scroll < modules.size(); i++) {
-            int y = rowY + i * 21;
-            if (mx >= left + 12 && mx <= left + 428 && my >= y - 3 && my < y + 17) {
-                modules.get(i + scroll).toggle(); return true;
+        List<ClientModule> modules=ModuleRegistry.byCategory(selected); int rowY=t+106;
+        if(e.button()==0||e.button()==1)for(int i=0;i<9&&i+scroll<modules.size();i++){
+            int y=rowY+i*21;
+            if(mx>=l+12&&mx<=l+428&&my>=y-3&&my<y+17){
+                selectedModule=modules.get(i+scroll);
+                if(e.button()==1){moduleSettingsOpen=true;settingScroll=0;} else selectedModule.toggle();
+                return true;
             }
         }
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(e,doubleClick);
     }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (settingsOpen) return true;
-        int maxScroll = Math.max(0, ModuleRegistry.byCategory(selected).size() - 9);
-        scroll = Math.max(0, Math.min(maxScroll, scroll - (int) Math.signum(verticalAmount)));
-        return true;
+    @Override public boolean mouseScrolled(double x,double y,double horizontal,double vertical){
+        if(settingsOpen)return true;
+        if(moduleSettingsOpen&&selectedModule!=null){
+            settingScroll=Math.max(0,Math.min(Math.max(0,selectedModule.settings().size()-8),settingScroll-(int)Math.signum(vertical)));return true;
+        }
+        int max=Math.max(0,ModuleRegistry.byCategory(selected).size()-9);
+        scroll=Math.max(0,Math.min(max,scroll-(int)Math.signum(vertical)));return true;
     }
-
-    private String colorName() {
-        return switch (accentIndex) { case 1 -> "Roxo"; case 2 -> "Azul"; case 3 -> "Verde"; case 4 -> "Laranja"; default -> "Vermelho"; };
+    @Override public void onClose(){
+        if(moduleSettingsOpen){moduleSettingsOpen=false;return;}
+        if(settingsOpen){settingsOpen=false;return;}
+        super.onClose();
     }
-
-    private static String title(ClientModule.Category category) {
-        String value = category.name().toLowerCase().replace('_', ' ');
-        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
-    }
+    private String colorName(){return switch(accentIndex){case 1->"Roxo";case 2->"Azul";case 3->"Verde";case 4->"Laranja";default->"Vermelho";};}
+    private static String title(ClientModule.Category c){String v=c.name().toLowerCase().replace('_',' ');return Character.toUpperCase(v.charAt(0))+v.substring(1);}
 }
