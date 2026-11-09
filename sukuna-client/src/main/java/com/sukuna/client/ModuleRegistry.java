@@ -79,7 +79,12 @@ public final class ModuleRegistry {
 
     private static void add(String name, ClientModule.Category category) {
         ClientModule module = new ClientModule(name, category, "Módulo em desenvolvimento.");
-        if (name.equals("Aura") || name.equals("AuraV2") || name.equals("KillAura")) {\n            module.addSetting(ModuleSetting.toggle("Target Players", true));\n            module.addSetting(ModuleSetting.toggle("Target Mobs", true));\n            module.addSetting(ModuleSetting.slider("Range", 4.0, 1.0, 6.0, 0.5));\n            module.addSetting(ModuleSetting.slider("CPS", 8.0, 1.0, 20.0, 1.0));\n            module.addSetting(ModuleSetting.mode("Priority", "Closest", "Lowest health"));
+        if (name.equals("Aura") || name.equals("AuraV2") || name.equals("KillAura")) {
+            module.addSetting(ModuleSetting.toggle("Target Players", true));
+            module.addSetting(ModuleSetting.toggle("Target Mobs", true));
+            module.addSetting(ModuleSetting.slider("Range", 4.0, 1.0, 6.0, 0.5));
+            module.addSetting(ModuleSetting.slider("CPS", 8.0, 1.0, 20.0, 1.0));
+            module.addSetting(ModuleSetting.mode("Priority", "Closest", "Lowest health"));
         } else if (name.equals("AutoClicker")) {
             module.addSetting(ModuleSetting.slider("CPS", 10.0, 1.0, 20.0, 1.0));
             module.addSetting(ModuleSetting.mode("Button", "Left", "Right"));
