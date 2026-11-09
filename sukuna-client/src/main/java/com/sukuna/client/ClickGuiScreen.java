@@ -25,10 +25,10 @@ public final class ClickGuiScreen extends Screen {
         float scale = uiScale / 100.0f;
         int mouseXScaled = (int) ((mouseX - width / 2.0f) / scale + width / 2.0f);
         int mouseYScaled = (int) ((mouseY - height / 2.0f) / scale + height / 2.0f);
-        graphics.pose().pushPose();
-        graphics.pose().translate(width / 2.0f, height / 2.0f, 0);
-        graphics.pose().scale(scale, scale, 1.0f);
-        graphics.pose().translate(-width / 2.0f, -height / 2.0f, 0);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(width / 2.0f, height / 2.0f);
+        graphics.pose().scale(scale, scale);
+        graphics.pose().translate(-width / 2.0f, -height / 2.0f);
         int left = width / 2 - 220, top = height / 2 - 160, right = left + 440, bottom = top + 320;
         graphics.fill(0, 0, width, height, (backdropOpacity << 24) | 0x00060008);
         graphics.fill(left, top, right, bottom, (panelOpacity << 24) | 0x0017121D);
