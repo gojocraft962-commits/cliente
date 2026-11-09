@@ -78,7 +78,13 @@ public final class ModuleRegistry {
     }
 
     private static void add(String name, ClientModule.Category category) {
-        MODULES.add(new ClientModule(name, category, "Placeholder: ainda por implementar."));
+        ClientModule module = new ClientModule(name, category, "Módulo em desenvolvimento.");
+        module.addSetting(ModuleSetting.toggle("Enabled", false));
+        module.addSetting(ModuleSetting.slider("Range", 4.0, 1.0, 6.0, 0.5));
+        module.addSetting(ModuleSetting.slider("Delay", 100.0, 0.0, 500.0, 25.0));
+        module.addSetting(ModuleSetting.mode("Mode", "Normal", "Legit", "Strict"));
+        module.addSetting(ModuleSetting.toggle("Show notifications", true));
+        MODULES.add(module);
     }
 
     public static List<ClientModule> all() {
