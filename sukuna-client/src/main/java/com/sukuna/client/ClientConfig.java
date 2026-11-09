@@ -19,8 +19,8 @@ public final class ClientConfig {
             try (InputStream in=Files.newInputStream(FILE)) { VALUES.load(in); }
             catch (IOException e) { System.err.println("[Sukuna] Could not read config: "+e.getMessage()); }
         }
-        accentIndex=integer("menu.accent",0); panelOpacity=integer("menu.panelOpacity",96);
-        backdropOpacity=integer("menu.backdropOpacity",153); uiScale=integer("menu.uiScale",100);
+        accentIndex=clamp(integer("menu.accent",0),0,4); panelOpacity=clamp(integer("menu.panelOpacity",96),0,255);
+        backdropOpacity=clamp(integer("menu.backdropOpacity",153),0,255); uiScale=clamp(integer("menu.uiScale",100),75,150);
         for (int i=0;i<ModuleRegistry.all().size();i++) {
             ClientModule m=ModuleRegistry.all().get(i);
             m.setEnabled(bool("module."+i+".enabled",false));
@@ -58,6 +58,7 @@ public final class ClientConfig {
             try(OutputStream out=Files.newOutputStream(FILE)){VALUES.store(out,"Sukuna Client settings");}
         } catch(IOException e) { System.err.println("[Sukuna] Could not save config: "+e.getMessage()); }
     }
+    private static int clamp(int value,int min,int max){return Math.max(min,Math.min(max,value));}
     private static int integer(String key,int fallback){try{return Integer.parseInt(VALUES.getProperty(key,Integer.toString(fallback)));}catch(NumberFormatException e){return fallback;}}
     private static double decimal(String key,double fallback){try{return Double.parseDouble(VALUES.getProperty(key,Double.toString(fallback)));}catch(NumberFormatException e){return fallback;}}
     private static boolean bool(String key,boolean fallback){return Boolean.parseBoolean(VALUES.getProperty(key,Boolean.toString(fallback)));}
