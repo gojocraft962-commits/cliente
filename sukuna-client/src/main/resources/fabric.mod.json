@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "sukuna",
+  "version": "${version}",
+  "name": "Sukuna Client",
+  "description": "Client-side utility and visual modules for Minecraft Java 1.21.11.",
+  "environment": "client",
+  "entrypoints": { "client": ["com.sukuna.client.SukunaClient"] },
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
