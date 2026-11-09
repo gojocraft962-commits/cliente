@@ -14,6 +14,7 @@ public final class SukunaClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ModuleRegistry.registerDefaults();
+        ClientConfig.load();
 
         openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.sukuna.open_menu",
