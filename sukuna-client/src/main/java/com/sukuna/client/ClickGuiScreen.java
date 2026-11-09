@@ -11,7 +11,7 @@ public final class ClickGuiScreen extends Screen {
     private static final int[] ACCENTS = {0xFFB20D2D,0xFF7A35D1,0xFF167AC6,0xFF168A62,0xFFE07820};
     private ClientModule.Category selected=ClientModule.Category.COMBAT;
     private ClientModule selectedModule;
-    private int scroll, settingScroll, accentIndex, panelOpacity=96, backdropOpacity=153, uiScale=100;
+    private int scroll, settingScroll;
     private boolean settingsOpen, moduleSettingsOpen;
     public ClickGuiScreen(){super(Component.literal("Sukuna Client"));}
 
@@ -86,7 +86,7 @@ public final class ClickGuiScreen extends Screen {
         if(moduleSettingsOpen&&selectedModule!=null){
             if(e.button()==0&&mx>=l+12&&mx<=l+428){
                 int index=settingScroll+(int)((my-(t+83))/25);
-                if(index>=0&&index<selectedModule.settings().size())selectedModule.settings().get(index).cycle();
+                if(index>=0&&index<selectedModule.settings().size())selectedModule.settings().get(index).cycle(); ClientConfig.save();
                 return true;
             }
             return super.mouseClicked(e,doubleClick);
@@ -102,7 +102,7 @@ public final class ClickGuiScreen extends Screen {
             int y=rowY+i*21;
             if(mx>=l+12&&mx<=l+428&&my>=y-3&&my<y+17){
                 selectedModule=modules.get(i+scroll);
-                if(e.button()==1){moduleSettingsOpen=true;settingScroll=0;} else selectedModule.toggle();
+                if(e.button()==1){moduleSettingsOpen=true;settingScroll=0;} else { selectedModule.toggle(); ClientConfig.save(); }
                 return true;
             }
         }
